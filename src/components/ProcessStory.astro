@@ -1,0 +1,137 @@
+---
+import { tr, type Lang } from '../data/site';
+
+const { lang } = Astro.props as { lang: Lang };
+const t = tr[lang];
+const outcomes = lang === 'id'
+  ? ['Peta kebutuhan bisnis', 'Rancangan antarmuka', 'Aplikasi yang diuji', 'Evaluasi dan pengembangan']
+  : ['Business requirements', 'Interface design', 'Tested application', 'Review and iteration'];
+const visuals = ['process-development', 'mobile-development', 'hero-dashboard', 'development-team'];
+---
+
+<section class="container">
+  <process-story class="approach section">
+    <div class="container">
+      <div class="approach-head">
+        <h2>{t.approachTitle}</h2>
+        <p class="lead">{lang === 'id' ? 'Setiap tahap memiliki tujuan, komunikasi, dan ruang untuk evaluasi.' : 'Every stage has a clear goal, communication, and room to evaluate.'}</p>
+      </div>
+      <div class="story-layout">
+        <div class="story-visual" aria-hidden="true">
+          {outcomes.map((outcome, index) => (
+            <figure class:list={['story-slide', { 'is-current': index === 0 }]}>
+              <img src={`/images/${visuals[index]}.webp`} alt="" width="1448" height="1086" loading="lazy" decoding="async"/>
+              <figcaption>{outcome}</figcaption>
+            </figure>
+          ))}
+        </div>
+        <ol class="story-steps">
+          {t.steps.map((step, index) => (
+            <li class="story-step">
+              <div>
+                <h3>{step}</h3>
+                <p>{t.stepsDesc[index]}</p>
+                <img class="story-inline" src={`/images/${visuals[index]}.webp`} alt="" width="1448" height="1086" loading="lazy" decoding="async"/>
+                <p class="story-outcome">{outcomes[index]}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+  </process-story>
+</section>
+
+<script>
+  class ProcessStory extends HTMLElement {
+    cleanup?: () => void;
+
+    connectedCallback() {
+      if (!('IntersectionObserver' in window)) return;
+      const steps = [...this.querySelectorAll<HTMLElement>('.story-step')];
+      const slides = [...this.querySelectorAll<HTMLElement>('.story-slide')];
+      const desktop = matchMedia('(min-width: 801px) and (min-height: 650px) and (prefers-reduced-motion: no-preference)');
+      let observer: IntersectionObserver | undefined;
+      let active = -1;
+
+      const update = () => {
+        const midpoint = window.innerHeight / 2;
+        let current = 0;
+        for (let i = 1; i < steps.length; i++) {
+          if (steps[i].getBoundingClientRect().top > midpoint) break;
+          current = i;
+        }
+        if (current === active) return;
+        active = current;
+        steps.forEach((step, i) => step.classList.toggle('is-current', i === active));
+        slides.forEach((slide, i) => slide.classList.toggle('is-current', i === active));
+      };
+
+      const setup = () => {
+        observer?.disconnect();
+        this.classList.toggle('is-enhanced', desktop.matches);
+        if (!desktop.matches) return;
+        const midpoint = Math.floor(window.innerHeight / 2);
+        // Observe a one-pixel strip at the center, in both scroll directions.
+        observer = new IntersectionObserver(update, {
+          rootMargin: `-${midpoint}px 0px -${window.innerHeight - midpoint - 1}px 0px`,
+        });
+        steps.forEach((step) => observer?.observe(step));
+        update();
+      };
+
+      setup();
+      desktop.addEventListener('change', setup);
+      window.addEventListener('resize', setup, { passive: true });
+      this.cleanup = () => {
+        observer?.disconnect();
+        desktop.removeEventListener('change', setup);
+        window.removeEventListener('resize', setup);
+      };
+    }
+
+    disconnectedCallback() {
+      this.cleanup?.();
+    }
+  }
+
+  if (!customElements.get('process-story')) customElements.define('process-story', ProcessStory);
+</script>
+
+<style>
+  process-story { display: block; }
+  .story-layout { margin-top: clamp(32px, 5vw, 70px); }
+  .story-visual { display: none; }
+  .story-steps { margin: 0; padding: 0; list-style-position: inside; }
+  .story-step { padding-block: 22px 30px; border-top: 1px solid #ffffff35; }
+  .story-step::marker { color: var(--lime); font-weight: 750; }
+  .story-step h3 { margin-bottom: 8px; }
+  .story-step p { color: #d4d4ce; }
+  .story-inline { width: 100%; height: auto; border-radius: 14px; margin-top: 16px; }
+  .story-step .story-outcome { color: var(--lime); margin-top: 10px; font-weight: 700; }
+  @media (min-width: 801px) and (min-height: 650px) and (prefers-reduced-motion: no-preference) {
+    .is-enhanced .story-layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: clamp(24px, 5vw, 80px); align-items: start; }
+    .is-enhanced .story-visual {
+      display: grid;
+      position: sticky;
+      top: max(114px, calc((100dvh - 440px) / 2));
+      padding-bottom: 24px;
+    }
+    .is-enhanced .story-slide {
+      grid-area: 1 / 1;
+      min-width: 0;
+      margin: 0;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 320ms ease, transform 320ms ease;
+    }
+    .is-enhanced .story-slide.is-current { opacity: 1; transform: translateY(0); z-index: 1; }
+    .story-slide img { width: 100%; height: auto; aspect-ratio: 4 / 3; max-height: min(380px, 48dvh); object-fit: cover; border-radius: 16px; }
+    .story-slide figcaption { margin-top: 13px; color: var(--lime); font-weight: 750; }
+    .is-enhanced .story-step { min-height: clamp(230px, 44dvh, 390px); padding-block: 36px; }
+    .is-enhanced .story-step:last-child { min-height: max(320px, 55dvh); }
+    .is-enhanced .story-step:not(.is-current)::marker { color: #b2b2aa; }
+    .is-enhanced .story-step.is-current { border-color: var(--lime); }
+    .is-enhanced .story-inline { display: none; }
+  }
+</style>

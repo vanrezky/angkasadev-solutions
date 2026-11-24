@@ -1,0 +1,12 @@
+---
+import { tr, url, type Lang } from '../data/site';
+const { lang, page } = Astro.props as {lang:Lang,page:string};
+const t=tr[lang];const other=lang==='id'?'en':'id';
+---
+<div class="stickybar"><header class="container header">
+<a class="brand" href={url(lang,'home')} aria-label="AngkasaDev Solutions - home"><svg class="brand-icon" viewBox="0 0 64 64" aria-hidden="true"><path d="M5 54 26 10 47 54 M15 39h22" fill="none" stroke="#171717" stroke-width="9" stroke-linejoin="round"/><path d="m43 9 16 24-16 23" fill="none" stroke="#ff713b" stroke-width="9" stroke-linejoin="round"/></svg><span class="brand-name">AngkasaDev<span class="brand-sub">Solutions</span></span></a>
+<nav class="navlinks" aria-label="Primary navigation">{t.nav.map((n,i)=><a href={url(lang,t.navKeys[i])} aria-current={page===t.navKeys[i]?'page':undefined}>{n}</a>)}</nav>
+<div class="navright"><div class="language" aria-label="Language"><a class:list={{active:lang==='id'}} href={url('id',page)} lang="id">ID</a><span>|</span><a class:list={{active:lang==='en'}} href={url('en',page)} lang="en">EN</a></div><a class="btn" href={url(lang,'contact')}>{t.contact} <span aria-hidden="true">↗</span></a><button class="mobile-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18M3 12h18M3 17h18"/></svg></button></div>
+<nav id="mobile-menu" class="mobile-menu" aria-label="Mobile navigation">{t.nav.map((n,i)=><a href={url(lang,t.navKeys[i])}>{n}</a>)}<a class="btn" href={url(lang,'contact')}>{t.contact} ↗</a><div class="language"><a href={url('id',page)}>Indonesia</a><span>|</span><a href={url('en',page)}>English</a></div></nav>
+</header></div>
+<script>document.addEventListener('astro:page-load',()=>{const toggle=document.querySelector<HTMLButtonElement>('.mobile-toggle');const menu=document.querySelector('#mobile-menu');toggle?.addEventListener('click',()=>{const open=menu?.classList.toggle('open')??false;toggle.setAttribute('aria-expanded',String(open));document.body.classList.toggle('menu-open',open);toggle.setAttribute('aria-label',open?'Close menu':'Open menu')});menu?.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{menu.classList.remove('open');document.body.classList.remove('menu-open');toggle?.setAttribute('aria-expanded','false')}))});</script>

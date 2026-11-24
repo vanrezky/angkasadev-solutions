@@ -1,0 +1,39 @@
+---
+import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
+import { site, url, type Lang } from '../data/site';
+const { lang, title, description, page='home', image='/social.svg' } = Astro.props as {lang:Lang,title:string,description:string,page?:string,image?:string};
+const canonical = new URL(Astro.url.pathname, Astro.site).toString();
+const other:Lang = lang==='id'?'en':'id';
+const counterpart = new URL(url(other,page), Astro.site).toString();
+---
+<!doctype html>
+<html lang={lang} transition:animate="none">
+  <head>
+    <ClientRouter fallback="none" />
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#F7F6F2" />
+    <meta name="description" content={description}/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:site_name" content={site.name}/>
+    <meta property="og:title" content={title}/>
+    <meta property="og:description" content={description}/>
+    <meta property="og:image" content={new URL(image,Astro.site).toString()}/>
+    <meta property="og:locale" content={lang==='id'?'id_ID':'en_US'}/>
+    <meta name="twitter:card" content="summary_large_image"/>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+    <link rel="canonical" href={canonical}/>
+    <link rel="alternate" hreflang={lang} href={canonical}/>
+    <link rel="alternate" hreflang={other} href={counterpart}/>
+    <link rel="alternate" hreflang="x-default" href="https://angkasadev.com/id"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <title>{title}</title>
+    <script type="application/ld+json" set:html={JSON.stringify({ '@context':'https://schema.org','@type':'Organization',name:site.name,url:'https://angkasadev.com',email:site.email,telephone:'+62'+site.phone.slice(1),address:{'@type':'PostalAddress',streetAddress:'Jln Puncak Sari, Rumbai',addressLocality:'Pekanbaru',addressRegion:'Riau',addressCountry:'ID'},areaServed:'Indonesia' })}/>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
